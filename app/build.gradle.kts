@@ -32,6 +32,8 @@ android {
 }
 
 dependencies {
+    implementation ("com.squareup.okhttp3:okhttp:4.9.3")
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

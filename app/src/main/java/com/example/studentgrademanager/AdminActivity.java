@@ -40,6 +40,7 @@ public class AdminActivity extends AppCompatActivity {
 
         btnAddStudent.setOnClickListener(v -> showAddStudentDialog());
         btnAddTeacher.setOnClickListener(v -> showAddTeacherDialog());
+
     }
 
     private void fetchModulesFromAPI() {
@@ -51,27 +52,36 @@ public class AdminActivity extends AppCompatActivity {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                runOnUiThread(() -> Toast.makeText(AdminActivity.this, "Failed to fetch modules", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() ->
+                        Toast.makeText(AdminActivity.this, "Failed to fetch modules", Toast.LENGTH_SHORT).show()
+                );
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String jsonResponse = response.body().string();
+                    System.out.println("DEBUG: API Response = " + jsonResponse);
                     try {
-                        JSONArray jsonArray = new JSONArray(response.body().string());
+                        JSONArray jsonArray = new JSONArray(jsonResponse);
+                        moduleList.clear();
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject module = jsonArray.getJSONObject(i);
-                            String moduleName = module.getString("module_name");
-                            String moduleCode = module.getString("module_code");
+                            String moduleName = module.getString("Nom_module");
+                            String moduleCode = module.getString("id_module");
                             moduleList.add(moduleName + " (" + moduleCode + ")");
                         }
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        System.out.println("DEBUG: JSON Parsing Error - " + e.getMessage());
                     }
+                } else {
+                    System.out.println("DEBUG: Response Failed - Code: " + response.code());
                 }
             }
         });
     }
+
+
 
     private void showAddStudentDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -105,7 +115,7 @@ public class AdminActivity extends AppCompatActivity {
 
     private void showAddTeacherDialog() {
         if (moduleList.isEmpty()) {
-            Toast.makeText(this, "Loading modules... Please wait", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Modules still loading... Please wait", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -135,7 +145,6 @@ public class AdminActivity extends AppCompatActivity {
             } else {
                 boolean success = dbHelper.addUser(username, password, "teacher", fullName);
                 if (success) {
-                    // Extract module code from selection (format: "Module Name (CODE)")
                     String moduleCode = selectedModule.substring(selectedModule.indexOf("(") + 1, selectedModule.indexOf(")"));
                     dbHelper.assignModuleToTeacher(username, moduleCode);
                     Toast.makeText(AdminActivity.this, "Teacher created successfully", Toast.LENGTH_SHORT).show();
@@ -147,4 +156,5 @@ public class AdminActivity extends AppCompatActivity {
         builder.setNegativeButton("Cancel", null);
         builder.show();
     }
+
 }
