@@ -50,6 +50,14 @@ public class TeacherAdapter extends RecyclerView.Adapter<TeacherAdapter.ViewHold
             if (!gradeStr.isEmpty()) {
                 try {
                     double grade = Double.parseDouble(gradeStr);
+                    if (grade < 0 || grade > 20) {
+                        // Set an error message to display a red border/error icon
+                        holder.etGrade.setError("Grade must be between 0 and 20");
+                        return;
+                    } else {
+                        // Clear error if input is valid
+                        holder.etGrade.setError(null);
+                    }
                     DatabaseHelper dbHelper = new DatabaseHelper(v.getContext());
                     boolean success = dbHelper.updateStudentGrade(student.getId(), grade, moduleCode);
                     if (success) {
