@@ -336,4 +336,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return success;
     }
+
+    public List<ModuleGrade> getModuleGradesForStudent(String studentUsername) {
+        List<ModuleGrade> moduleGrades = new ArrayList<>();
+        int studentId = getUserId(studentUsername);
+        System.out.println("DEBUG: getModuleGradesForStudent - studentUsername: " + studentUsername + ", studentId: " + studentId);
+        if (studentId == -1) return moduleGrades;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        // Retrieve all modules
+        Cursor moduleCursor = db.query(TABLE_MODULES, new String[]{COLUMN_ID, COLUMN_MODULE_NAME, COLUMN_MODULE_CODE},
+                null, null, null, null, null);
+        if (moduleCursor.moveToFirst()) {
+            do {
+                int moduleId = moduleCursor.getInt(0);
+                String moduleName = moduleCursor.getString(1);
+                String moduleCode = moduleCursor.getString(2);
+                Double grade = null;
+                // Check if a grade record exists for this student and module
+                Cursor gradeCursor = db.query(TABLE_GRADES, new String[]{COLUMN_GRADE},
+                        COLUMN_STUDENT_ID + "=? AND " + COLUMN_MODULE_ID + "=?",
+                        new String[]{String.valueOf(studentId), String.valueOf(moduleId)},
+                        null, null, null);
+                if (gradeCursor.moveToFirst()) {
+                    grade = gradeCursor.getDouble(0);
+                }
+                gradeCursor.close();
+                moduleGrades.add(new ModuleGrade(moduleName, grade));
+                System.out.println("DEBUG: getModuleGradesForStudent - Added module: " + moduleName + ", grade: " + grade);
+            } while (moduleCursor.moveToNext());
+        }
+        moduleCursor.close();
+        System.out.println("DEBUG: getModuleGradesForStudent - Total modules loaded: " + moduleGrades.size());
+        return moduleGrades;
+    }
+
+
 }
