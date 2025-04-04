@@ -32,6 +32,8 @@ public class AdminActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin);
 
         dbHelper = new DatabaseHelper(this);
+        //dbHelper.resetDatabase();
+
         btnAddStudent = findViewById(R.id.btnAddStudent);
         btnAddTeacher = findViewById(R.id.btnAddTeacher);
 
@@ -146,6 +148,7 @@ public class AdminActivity extends AppCompatActivity {
                 boolean success = dbHelper.addUser(username, password, "teacher", fullName);
                 if (success) {
                     String moduleCode = selectedModule.substring(selectedModule.indexOf("(") + 1, selectedModule.indexOf(")"));
+                    System.out.println("DEBUG: addTeacher - modulecode: " + moduleCode);
                     dbHelper.assignModuleToTeacher(username, moduleCode);
                     Toast.makeText(AdminActivity.this, "Teacher created successfully", Toast.LENGTH_SHORT).show();
                 } else {
