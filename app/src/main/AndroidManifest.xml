@@ -8,11 +8,12 @@
         android:label="Student Grade Manager"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        android:theme="@style/Theme.AppMob1"> <!-- Changed base theme -->
 
         <activity
             android:name=".LoginActivity"
-            android:exported="true"> <!-- Added this line -->
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"> <!-- Keep login theme unchanged -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -21,14 +22,17 @@
 
         <activity
             android:name=".AdminActivity"
-            android:exported="false" /> <!-- Not accessible from other apps -->
+            android:exported="false"
+            android:theme="@style/Theme.AppMob1.Teacher" /> <!-- Admin uses Teacher theme -->
 
         <activity
             android:name=".TeacherActivity"
-            android:exported="false" /> <!-- Not accessible from other apps -->
+            android:exported="false"
+            android:theme="@style/Theme.AppMob1.Teacher" /> <!-- Apply Teacher theme -->
 
         <activity
             android:name=".StudentActivity"
-            android:exported="false" /> <!-- Not accessible from other apps -->
+            android:exported="false"
+            android:theme="@style/Theme.AppMob1.Student" /> <!-- Apply Student theme -->
     </application>
 </manifest>

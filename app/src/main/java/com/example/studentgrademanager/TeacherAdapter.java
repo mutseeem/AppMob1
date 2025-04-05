@@ -19,8 +19,9 @@ public class TeacherAdapter extends RecyclerView.Adapter<TeacherAdapter.ViewHold
         this.moduleCode = moduleCode;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView tvUsername, tvFullName;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        public TextView tvUsername;
+        public TextView tvFullName;
         public EditText etGrade;
         public Button btnSubmit;
 
@@ -34,44 +35,41 @@ public class TeacherAdapter extends RecyclerView.Adapter<TeacherAdapter.ViewHold
     }
 
     @Override
-    public TeacherAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_teacher, parent, false);
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_teacher, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(TeacherAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, int position) {
         Student student = students.get(position);
         holder.tvUsername.setText(student.getUsername());
         holder.tvFullName.setText(student.getFullName());
         holder.etGrade.setText(student.getGrade() == null ? "" : String.valueOf(student.getGrade()));
+
         holder.btnSubmit.setOnClickListener(v -> {
             String gradeStr = holder.etGrade.getText().toString().trim();
             if (!gradeStr.isEmpty()) {
                 try {
                     double grade = Double.parseDouble(gradeStr);
                     if (grade < 0 || grade > 20) {
-                        // Set an error message to display a red border/error icon
                         holder.etGrade.setError("Grade must be between 0 and 20");
                         return;
-                    } else {
-                        // Clear error if input is valid
-                        holder.etGrade.setError(null);
                     }
                     DatabaseHelper dbHelper = new DatabaseHelper(v.getContext());
                     boolean success = dbHelper.updateStudentGrade(student.getId(), grade, moduleCode);
                     if (success) {
                         Toast.makeText(v.getContext(), "Grade updated for " + student.getUsername(), Toast.LENGTH_SHORT).show();
                         student.setGrade(grade);
-                        System.out.println("DEBUG: TeacherAdapter - Grade updated for student: " + student.getUsername() + " new grade: " + grade);
                     } else {
-                        Toast.makeText(v.getContext(), "Failed to update grade.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(v.getContext(), "Failed to update grade", Toast.LENGTH_SHORT).show();
                     }
                 } catch (NumberFormatException e) {
-                    Toast.makeText(v.getContext(), "Enter a valid grade.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(v.getContext(), "Enter a valid grade", Toast.LENGTH_SHORT).show();
                 }
             } else {
-                Toast.makeText(v.getContext(), "Grade cannot be empty.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(v.getContext(), "Grade cannot be empty", Toast.LENGTH_SHORT).show();
             }
         });
     }

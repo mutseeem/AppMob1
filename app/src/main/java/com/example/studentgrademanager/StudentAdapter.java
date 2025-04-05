@@ -5,7 +5,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
-
 import java.util.List;
 
 public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.ViewHolder> {
@@ -15,8 +14,9 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.ViewHold
         this.moduleGrades = moduleGrades;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView tvModuleName, tvGrade;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        public TextView tvModuleName;
+        public TextView tvGrade;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -26,17 +26,18 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.ViewHold
     }
 
     @Override
-    public StudentAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_student, parent, false);
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_student, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(StudentAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, int position) {
         ModuleGrade moduleGrade = moduleGrades.get(position);
         holder.tvModuleName.setText(moduleGrade.getModuleName());
-        // Display grade if available; otherwise, show a placeholder
-        holder.tvGrade.setText(moduleGrade.getGrade() == null ? "" : String.valueOf(moduleGrade.getGrade()));
+        holder.tvGrade.setText(moduleGrade.getGrade() == null ?
+                "Not Graded" : String.valueOf(moduleGrade.getGrade()));
     }
 
     @Override

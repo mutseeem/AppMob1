@@ -9,11 +9,6 @@ public class ModuleGrade {
         this.grade = grade;
     }
 
-    public String getModuleName() {
-        return moduleName;
-    }
-
-    public Double getGrade() {
-        return grade;
-    }
+    public String getModuleName() { return moduleName; }
+    public Double getGrade() { return grade; }
 }

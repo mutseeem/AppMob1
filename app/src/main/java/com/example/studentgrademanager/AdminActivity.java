@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -21,6 +22,8 @@ import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import android.widget.LinearLayout;
+
 
 public class AdminActivity extends AppCompatActivity {
     private Button btnAddStudent, btnAddTeacher;
@@ -126,11 +129,6 @@ public class AdminActivity extends AppCompatActivity {
     }
 
     private void showAddTeacherDialog() {
-        if (moduleList.isEmpty()) {
-            Toast.makeText(this, "Modules still loading... Please wait", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add New Teacher");
 
@@ -138,31 +136,61 @@ public class AdminActivity extends AppCompatActivity {
         final EditText etUsername = view.findViewById(R.id.etUsername);
         final EditText etPassword = view.findViewById(R.id.etPassword);
         final EditText etFullName = view.findViewById(R.id.etFullName);
-        final Spinner spinnerModules = view.findViewById(R.id.spinnerModules);
+        final EditText etGroups = view.findViewById(R.id.etGroups);
+        final LinearLayout modulesContainer = (LinearLayout) view.findViewById(R.id.modulesContainer);
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, moduleList);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerModules.setAdapter(adapter);
+        List<String> modules = dbHelper.getAllModules();
+        if (modules.isEmpty()) {
+            Toast.makeText(this, "Loading modules... Please wait", Toast.LENGTH_SHORT).show();
+            dbHelper.fetchModulesFromAPI(dbHelper.getWritableDatabase());
+            modules = dbHelper.getAllModules();
+        }
+
+        for (String module : modules) {
+            CheckBox checkBox = new CheckBox(this);
+            checkBox.setText(module);
+            modulesContainer.addView(checkBox);
+        }
 
         builder.setView(view);
         builder.setPositiveButton("Create", (dialog, which) -> {
             String username = etUsername.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
             String fullName = etFullName.getText().toString().trim();
-            String selectedModule = spinnerModules.getSelectedItem().toString();
+            String groupsInput = etGroups.getText().toString().trim();
+
+            List<String> selectedModules = new ArrayList<>();
+            int childCount = modulesContainer.getChildCount();
+            for (int i = 0; i < childCount; i++) {
+                View child = modulesContainer.getChildAt(i);
+                if (child instanceof CheckBox) {
+                    CheckBox checkBox = (CheckBox) child;
+                    if (checkBox.isChecked()) {
+                        selectedModules.add(checkBox.getText().toString());
+                    }
+                }
+            }
+
+            List<String> groups = new ArrayList<>();
+            if (!groupsInput.isEmpty()) {
+                for (String group : groupsInput.split(",")) {
+                    if (!group.trim().isEmpty()) {
+                        groups.add(group.trim());
+                    }
+                }
+            }
 
             if (username.isEmpty() || password.isEmpty() || fullName.isEmpty()) {
-                Toast.makeText(AdminActivity.this, "All fields are required", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
+            } else if (selectedModules.isEmpty()) {
+                Toast.makeText(this, "Select at least one module", Toast.LENGTH_SHORT).show();
             } else {
-                boolean success = dbHelper.addUser(username, password, "teacher", fullName);
+                Teacher newTeacher = new Teacher(0, username, password, fullName, selectedModules, groups);
+                boolean success = dbHelper.addTeacher(newTeacher);
                 if (success) {
-                    String moduleCode = selectedModule.substring(selectedModule.indexOf("(") + 1, selectedModule.indexOf(")"));
-                    System.out.println("DEBUG: addTeacher - modulecode: " + moduleCode);
-                    dbHelper.assignModuleToTeacher(username, moduleCode);
-                    Toast.makeText(AdminActivity.this, "Teacher created successfully", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Teacher created successfully", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(AdminActivity.this, "Failed to create teacher", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to create teacher", Toast.LENGTH_SHORT).show();
                 }
             }
         });

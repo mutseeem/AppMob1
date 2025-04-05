@@ -25,13 +25,40 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Full Name"
-        android:inputType="text"
+        android:inputType="textPersonName"
         android:layout_marginTop="8dp"/>
 
-    <Spinner
-        android:id="@+id/spinnerModules"
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Modules:"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginTop="8dp">
+
+        <LinearLayout
+            android:id="@+id/modulesContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+    </ScrollView>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Assign Groups:"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"/>
+
+    <EditText
+        android:id="@+id/etGroups"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:hint="Enter groups (comma separated)"
         android:layout_marginTop="8dp"
-        android:prompt="@string/select_module"/>
+        android:inputType="text"/>
 </LinearLayout>
