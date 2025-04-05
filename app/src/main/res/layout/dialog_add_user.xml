@@ -27,4 +27,14 @@
         android:hint="Full Name"
         android:inputType="text"
         android:layout_marginTop="8dp"/>
+
+    <!-- New Group Field -->
+    <EditText
+        android:id="@+id/etGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Group"
+        android:inputType="text"
+        android:layout_marginTop="8dp"/>
+
 </LinearLayout>

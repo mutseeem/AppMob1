@@ -137,15 +137,9 @@ public class AdminActivity extends AppCompatActivity {
         final EditText etPassword = view.findViewById(R.id.etPassword);
         final EditText etFullName = view.findViewById(R.id.etFullName);
         final EditText etGroups = view.findViewById(R.id.etGroups);
-        final LinearLayout modulesContainer = (LinearLayout) view.findViewById(R.id.modulesContainer);
+        final LinearLayout modulesContainer = view.findViewById(R.id.modulesContainer);
 
         List<String> modules = dbHelper.getAllModules();
-        if (modules.isEmpty()) {
-            Toast.makeText(this, "Loading modules... Please wait", Toast.LENGTH_SHORT).show();
-            dbHelper.fetchModulesFromAPI(dbHelper.getWritableDatabase());
-            modules = dbHelper.getAllModules();
-        }
-
         for (String module : modules) {
             CheckBox checkBox = new CheckBox(this);
             checkBox.setText(module);
@@ -160,8 +154,7 @@ public class AdminActivity extends AppCompatActivity {
             String groupsInput = etGroups.getText().toString().trim();
 
             List<String> selectedModules = new ArrayList<>();
-            int childCount = modulesContainer.getChildCount();
-            for (int i = 0; i < childCount; i++) {
+            for (int i = 0; i < modulesContainer.getChildCount(); i++) {
                 View child = modulesContainer.getChildAt(i);
                 if (child instanceof CheckBox) {
                     CheckBox checkBox = (CheckBox) child;

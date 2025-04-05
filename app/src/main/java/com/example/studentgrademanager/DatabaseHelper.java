@@ -71,7 +71,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    private void fetchModulesFromAPI(SQLiteDatabase db) {
+    public void fetchModulesFromAPI(SQLiteDatabase db) {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
                 .url("https://num.univ-biskra.dz/psp/formations/get_modules_json?sem=1&spec=184")
@@ -109,9 +109,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         });
     }
 
-    public void fetchModulesFromAPI() {
+   /*public void fetchModulesFromAPI() {
         fetchModulesFromAPI(getWritableDatabase());
-    }
+    }*/
 
     public boolean checkUser(String username, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
