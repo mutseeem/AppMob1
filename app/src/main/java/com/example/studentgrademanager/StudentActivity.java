@@ -1,40 +1,40 @@
 package com.example.studentgrademanager;
 
 import android.os.Bundle;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class StudentActivity extends AppCompatActivity {
-    private RecyclerView recyclerView;
-    private ModuleAdapter adapter;
-    private List<Module> modules;
+    private RecyclerView gradesRecyclerView;
+    private ModuleAdapter moduleAdapter;
     private DatabaseHelper dbHelper;
-    private User currentStudent;
+    private String studentUsername;
+    private int studentId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_student);
 
-        // Initialize database helper
         dbHelper = new DatabaseHelper(this);
+        studentUsername = getIntent().getStringExtra("studentUsername");
+        studentId = dbHelper.getUserByUsername(studentUsername).getId();
 
-        // Get current student (in a real app, you'd get this from login)
-        currentStudent = new User(1, "student1", "John Doe", "student", "GroupA");
+        TextView tvWelcome = findViewById(R.id.tvWelcome);
+        tvWelcome.setText("Welcome, " + studentUsername + "\nYour Grades");
 
-        // Initialize RecyclerView
-        recyclerView = findViewById(R.id.rvGrades);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        gradesRecyclerView = findViewById(R.id.rvGrades);
+        gradesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Load modules for student's group
-        loadModules();
+        loadStudentGrades();
     }
 
-    private void loadModules() {
-        modules = dbHelper.getModulesByGroupForStudent(currentStudent.getGroup(), currentStudent.getId());
-        adapter = new ModuleAdapter(modules);
-        recyclerView.setAdapter(adapter);
+    private void loadStudentGrades() {
+        List<ModuleGrade> grades = dbHelper.getStudentGrades(studentId);
+        moduleAdapter = new ModuleAdapter(grades);
+        gradesRecyclerView.setAdapter(moduleAdapter);
     }
 }

@@ -1,17 +1,13 @@
 package com.example.studentgrademanager;
 
-import java.util.List;
-
 public class User {
     protected int id;
     protected String username;
     protected String password;
     protected String fullName;
     protected String role;
-    protected String group;  // For students (single group)
-    protected String groups; // For teachers (comma-separated groups)
+    protected String group;
 
-    // Constructor for students
     public User(int id, String username, String fullName, String role, String group) {
         this.id = id;
         this.username = username;
@@ -20,24 +16,16 @@ public class User {
         this.group = group;
     }
 
-    // Constructor for teachers
-    public User(int id, String username, String fullName, String role, List<String> groups) {
-        this.id = id;
-        this.username = username;
-        this.fullName = fullName;
-        this.role = role;
-        setGroupsList(groups);
-    }
-
-    // Getters and setters
+    // Getters
+    public int getId() { return id; }
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
+    public String getFullName() { return fullName; }
+    public String getRole() { return role; }
     public String getGroup() { return group; }
-    public String getGroups() { return groups; }
 
+    // Setters
+    public void setPassword(String password) { this.password = password; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
     public void setGroup(String group) { this.group = group; }
-    public void setGroupsList(List<String> groups) {
-        this.groups = TextUtils.join(",", groups);
-    }
-    public List<String> getGroupsList() {
-        return Arrays.asList(groups.split(","));
-    }
 }

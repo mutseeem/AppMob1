@@ -8,115 +8,70 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import android.widget.LinearLayout;
-
 
 public class AdminActivity extends AppCompatActivity {
-    private Button btnAddStudent, btnAddTeacher;
+    private Button btnAddStudent, btnAddTeacher, btnViewStudents;
     private DatabaseHelper dbHelper;
-    private List<String> moduleList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin);
-        Button btnLogout = findViewById(R.id.btnLogout);
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(AdminActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        });
 
         dbHelper = new DatabaseHelper(this);
-        //dbHelper.resetDatabase();
-
+        dbHelper.fetchAndInsertModules();
         btnAddStudent = findViewById(R.id.btnAddStudent);
         btnAddTeacher = findViewById(R.id.btnAddTeacher);
+        btnViewStudents = findViewById(R.id.btnViewStudents);
 
-        // Fetch modules from API
-        fetchModulesFromAPI();
+        Button btnLogout = findViewById(R.id.btnLogout);
+        btnLogout.setOnClickListener(v -> {
+            finish();
+        });
 
         btnAddStudent.setOnClickListener(v -> showAddStudentDialog());
         btnAddTeacher.setOnClickListener(v -> showAddTeacherDialog());
-
-    }
-
-    private void fetchModulesFromAPI() {
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url("https://num.univ-biskra.dz/psp/formations/get_modules_json?sem=1&spec=184")
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                runOnUiThread(() ->
-                        Toast.makeText(AdminActivity.this, "Failed to fetch modules", Toast.LENGTH_SHORT).show()
-                );
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful() && response.body() != null) {
-                    String jsonResponse = response.body().string();
-                    System.out.println("DEBUG: API Response = " + jsonResponse);
-                    try {
-                        JSONArray jsonArray = new JSONArray(jsonResponse);
-                        moduleList.clear();
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject module = jsonArray.getJSONObject(i);
-                            String moduleName = module.getString("Nom_module");
-                            String moduleCode = module.getString("id_module");
-                            moduleList.add(moduleName + " (" + moduleCode + ")");
-                        }
-                    } catch (JSONException e) {
-                        System.out.println("DEBUG: JSON Parsing Error - " + e.getMessage());
-                    }
-                } else {
-                    System.out.println("DEBUG: Response Failed - Code: " + response.code());
-                }
-            }
+        btnViewStudents.setOnClickListener(v -> {
+            Intent intent = new Intent(AdminActivity.this, ViewStudentsActivity.class);
+            startActivity(intent);
         });
     }
-
-
 
     private void showAddStudentDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add New Student");
 
-        View view = getLayoutInflater().inflate(R.layout.dialog_add_user, null);
+        View view = getLayoutInflater().inflate(R.layout.dialog_add_student, null);
         final EditText etUsername = view.findViewById(R.id.etUsername);
         final EditText etPassword = view.findViewById(R.id.etPassword);
         final EditText etFullName = view.findViewById(R.id.etFullName);
+        final Spinner spinnerGroup = view.findViewById(R.id.spinnerGroup);
+
+        // Set up group spinner
+        List<String> groups = dbHelper.getAllGroups();
+        ArrayAdapter<String> groupAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, groups);
+        groupAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerGroup.setAdapter(groupAdapter);
 
         builder.setView(view);
         builder.setPositiveButton("Create", (dialog, which) -> {
             String username = etUsername.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
             String fullName = etFullName.getText().toString().trim();
+            String group = spinnerGroup.getSelectedItem().toString();
 
             if (username.isEmpty() || password.isEmpty() || fullName.isEmpty()) {
                 Toast.makeText(AdminActivity.this, "All fields are required", Toast.LENGTH_SHORT).show();
             } else {
-                boolean success = dbHelper.addUser(username, password, "student", fullName, "GroupA");                if (success) {
+                boolean success = dbHelper.addStudent(username, password, fullName, group);
+                if (success) {
                     Toast.makeText(AdminActivity.this, "Student created successfully", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(AdminActivity.this, "Failed to create student", Toast.LENGTH_SHORT).show();
@@ -138,6 +93,7 @@ public class AdminActivity extends AppCompatActivity {
         final EditText etGroups = view.findViewById(R.id.etGroups);
         final LinearLayout modulesContainer = view.findViewById(R.id.modulesContainer);
 
+        // Add checkboxes for all modules
         List<String> modules = dbHelper.getAllModules();
         for (String module : modules) {
             CheckBox checkBox = new CheckBox(this);
@@ -152,6 +108,7 @@ public class AdminActivity extends AppCompatActivity {
             String fullName = etFullName.getText().toString().trim();
             String groupsInput = etGroups.getText().toString().trim();
 
+            // Get selected modules
             List<String> selectedModules = new ArrayList<>();
             for (int i = 0; i < modulesContainer.getChildCount(); i++) {
                 View child = modulesContainer.getChildAt(i);
@@ -163,32 +120,56 @@ public class AdminActivity extends AppCompatActivity {
                 }
             }
 
+            // Process groups
             List<String> groups = new ArrayList<>();
             if (!groupsInput.isEmpty()) {
                 for (String group : groupsInput.split(",")) {
-                    if (!group.trim().isEmpty()) {
-                        groups.add(group.trim());
+                    String trimmedGroup = group.trim();
+                    if (!trimmedGroup.isEmpty() && dbHelper.getAllGroups().contains(trimmedGroup)) {
+                        groups.add(trimmedGroup);
                     }
                 }
             }
 
+            // Validation
             if (username.isEmpty() || password.isEmpty() || fullName.isEmpty()) {
-                Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
-            } else if (selectedModules.isEmpty()) {
+                Toast.makeText(this, "Username, password and full name are required", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (groups.isEmpty()) {
+                Toast.makeText(this, "At least one valid group is required", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (selectedModules.isEmpty()) {
                 Toast.makeText(this, "Select at least one module", Toast.LENGTH_SHORT).show();
-            } else {
-                boolean success = dbHelper.addTeacher(username, password, fullName, groups);
-                if (success) {
-                    // Teacher added successfully
+                return;
+            }
+
+            // Create teacher
+            boolean success = dbHelper.addTeacher(username, password, fullName, groups);
+            if (success) {
+                // Assign modules to teacher
+                User teacher = dbHelper.getUserByUsername(username);
+                if (teacher != null) {
+                    for (String moduleName : selectedModules) {
+                        // Get module ID (this is simplified - you might need proper module lookup)
+                        String moduleId = moduleName.substring(0, Math.min(moduleName.length(), 7));
+                        for (String group : groups) {
+                            dbHelper.assignModuleToTeacher(teacher.getId(), moduleId, group);
+                        }
+                    }
                     Toast.makeText(this, "Teacher added successfully", Toast.LENGTH_SHORT).show();
                 } else {
-                    // Failed to add teacher
-                    Toast.makeText(this, "Failed to add teacher", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to create teacher", Toast.LENGTH_SHORT).show();
                 }
+            } else {
+                Toast.makeText(this, "Failed to create teacher", Toast.LENGTH_SHORT).show();
             }
         });
+
         builder.setNegativeButton("Cancel", null);
         builder.show();
     }
-
 }

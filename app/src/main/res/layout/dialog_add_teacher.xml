@@ -1,43 +1,92 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:layout_height="match_parent"
     android:padding="16dp">
 
-    <!-- Other existing fields... -->
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Assign Groups:"
-        android:textStyle="bold"
-        android:layout_marginTop="16dp"/>
-
-    <EditText
-        android:id="@+id/etGroups"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter groups (comma separated)"
-        android:layout_marginTop="8dp"
-        android:inputType="text"/>
+        android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select Modules:"
-        android:textStyle="bold"
-        android:layout_marginTop="16dp"/>
+        <!-- Username Field -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Username"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"/>
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:layout_marginTop="8dp">
-
-        <LinearLayout
-            android:id="@+id/modulesContainer"
+        <EditText
+            android:id="@+id/etUsername"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"/>
-    </ScrollView>
+            android:hint="Enter username"
+            android:inputType="text"/>
 
-</LinearLayout>
+        <!-- Password Field -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Password"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+
+        <EditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter password"
+            android:inputType="textPassword"/>
+
+        <!-- Full Name Field -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Full Name"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+
+        <EditText
+            android:id="@+id/etFullName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter full name"
+            android:inputType="textPersonName"/>
+
+        <!-- Groups Field -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Assign Groups (comma separated)"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+
+        <EditText
+            android:id="@+id/etGroups"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Example: G1,G2,G3"
+            android:inputType="text"/>
+
+        <!-- Modules Selection -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Modules:"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginTop="8dp">
+
+            <LinearLayout
+                android:id="@+id/modulesContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+        </ScrollView>
+    </LinearLayout>
+</ScrollView>

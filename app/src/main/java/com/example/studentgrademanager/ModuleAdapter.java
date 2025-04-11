@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Locale;
 
 public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder> {
-    private List<Module> modules;
+    private List<ModuleGrade> moduleGrades;
 
-    public ModuleAdapter(List<Module> modules) {
-        this.modules = modules;
+    public ModuleAdapter(List<ModuleGrade> moduleGrades) {
+        this.moduleGrades = moduleGrades;
     }
 
     @NonNull
@@ -26,11 +26,11 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Module module = modules.get(position);
-        holder.moduleName.setText(module.getModuleName());
+        ModuleGrade moduleGrade = moduleGrades.get(position);
+        holder.moduleName.setText(moduleGrade.getModuleName());
 
-        if (module.getGrade() != null) {
-            holder.grade.setText(String.format(Locale.getDefault(), "Grade: %.1f", module.getGrade()));
+        if (moduleGrade.getGrade() != null) {
+            holder.grade.setText(String.format(Locale.getDefault(), "Grade: %.1f", moduleGrade.getGrade()));
         } else {
             holder.grade.setText("Not graded yet");
         }
@@ -38,7 +38,7 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
 
     @Override
     public int getItemCount() {
-        return modules.size();
+        return moduleGrades.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

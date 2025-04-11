@@ -3,8 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/white">
 
+    <!-- Header -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
@@ -15,44 +17,52 @@
         android:gravity="center"
         android:textStyle="bold"/>
 
-    <androidx.cardview.widget.CardView
+    <!-- Module Selection -->
+    <Spinner
+        android:id="@+id/moduleSpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:cardBackgroundColor="@color/teacher_secondary"
+        android:prompt="@string/select_module"/>
+
+    <!-- Students List -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_margin="8dp"
         app:cardCornerRadius="8dp"
         app:cardElevation="4dp">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Your Students"
-                android:textColor="@color/teacher_text"
+                android:text="Students"
                 android:textSize="18sp"
-                android:textStyle="bold"/>
+                android:textStyle="bold"
+                android:layout_margin="16dp"/>
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerViewTeacher"
+                android:id="@+id/studentsRecyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="400dp"
-                android:layout_marginTop="12dp"
-                android:padding="4dp"
+                android:layout_height="match_parent"
+                android:layout_margin="8dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
-
-            <Button
-                android:id="@+id/btnLogout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Logout"
-                android:textColor="@android:color/white"
-                android:backgroundTint="@color/teacher_primary"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <!-- Logout Button -->
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Logout"
+        android:layout_margin="16dp"
+        android:backgroundTint="@color/teacher_primary"
+        android:textColor="@android:color/white"/>
 </LinearLayout>

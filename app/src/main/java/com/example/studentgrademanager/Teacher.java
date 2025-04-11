@@ -8,9 +8,8 @@ public class Teacher extends User {
 
     public Teacher(int id, String username, String password, String fullName,
                    List<String> modules, List<String> groups) {
-        super(id, username, fullName, null);
-        this.password = password;
-        this.role = "teacher";
+        super(id, username, fullName, "teacher", null);
+        this.setPassword(password);
         this.modules = modules;
         this.groups = groups;
     }

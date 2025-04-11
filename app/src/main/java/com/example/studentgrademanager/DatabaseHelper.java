@@ -6,13 +6,24 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "StudentGradeManager.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     // Users table
     private static final String TABLE_USERS = "users";
@@ -21,8 +32,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_PASSWORD = "password";
     private static final String COLUMN_FULLNAME = "fullName";
     private static final String COLUMN_ROLE = "role";
-    private static final String COLUMN_GROUP = "user_group";  // For students
-    private static final String COLUMN_GROUPS = "user_groups"; // For teachers
+    private static final String COLUMN_GROUP = "user_group";
+    private static final String COLUMN_GROUPS = "user_groups";
     private static final String COLUMN_GRADE = "grade";
 
     // Modules table
@@ -35,6 +46,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_GRADES = "grades";
     private static final String COLUMN_GRADE_ID = "grade_id";
     private static final String COLUMN_STUDENT_ID = "student_id";
+
+    // Teacher modules table
+    private static final String TABLE_TEACHER_MODULES = "teacher_modules";
+    private static final String COLUMN_TEACHER_ID = "teacher_id";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -71,41 +86,83 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + "FOREIGN KEY(" + COLUMN_MODULE_ID + ") REFERENCES " + TABLE_MODULES + "(" + COLUMN_MODULE_ID + "))";
         db.execSQL(CREATE_GRADES_TABLE);
 
+        // Create teacher_modules table
+        String CREATE_TEACHER_MODULES_TABLE = "CREATE TABLE " + TABLE_TEACHER_MODULES + "("
+                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + COLUMN_TEACHER_ID + " INTEGER,"
+                + COLUMN_MODULE_ID + " TEXT,"
+                + COLUMN_MODULE_GROUP + " TEXT,"
+                + "FOREIGN KEY(" + COLUMN_TEACHER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + "),"
+                + "FOREIGN KEY(" + COLUMN_MODULE_ID + ") REFERENCES " + TABLE_MODULES + "(" + COLUMN_MODULE_ID + "))";
+        db.execSQL(CREATE_TEACHER_MODULES_TABLE);
+
         // Insert sample data
         insertSampleData(db);
     }
 
     private void insertSampleData(SQLiteDatabase db) {
-        // Insert sample modules
-        ContentValues moduleValues = new ContentValues();
-        moduleValues.put(COLUMN_MODULE_ID, "MATH101");
-        moduleValues.put(COLUMN_MODULE_NAME, "Mathematics");
-        moduleValues.put(COLUMN_MODULE_GROUP, "G1");
-        db.insert(TABLE_MODULES, null, moduleValues);
+        // Only insert admin user
+        ContentValues adminValues = new ContentValues();
+        adminValues.put(COLUMN_USERNAME, "admin");
+        adminValues.put(COLUMN_PASSWORD, "admin123"); // In production, use hashed passwords
+        adminValues.put(COLUMN_FULLNAME, "Administrator");
+        adminValues.put(COLUMN_ROLE, "admin");
+        db.insert(TABLE_USERS, null, adminValues);
+    }
+    public boolean insertModulesFromApi(JSONArray modulesJson) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
 
-        moduleValues.clear();
-        moduleValues.put(COLUMN_MODULE_ID, "PHY101");
-        moduleValues.put(COLUMN_MODULE_NAME, "Physics");
-        moduleValues.put(COLUMN_MODULE_GROUP, "G1");
-        db.insert(TABLE_MODULES, null, moduleValues);
+        try {
+            // Clear existing modules
+            db.delete(TABLE_MODULES, null, null);
 
-        // Insert sample student
-        ContentValues userValues = new ContentValues();
-        userValues.put(COLUMN_USERNAME, "student1");
-        userValues.put(COLUMN_PASSWORD, "password");
-        userValues.put(COLUMN_FULLNAME, "John Doe");
-        userValues.put(COLUMN_ROLE, "student");
-        userValues.put(COLUMN_GROUP, "G1");
-        db.insert(TABLE_USERS, null, userValues);
+            for (int i = 0; i < modulesJson.length(); i++) {
+                JSONObject module = modulesJson.getJSONObject(i);
+                ContentValues values = new ContentValues();
 
-        // Insert sample teacher
-        userValues.clear();
-        userValues.put(COLUMN_USERNAME, "teacher1");
-        userValues.put(COLUMN_PASSWORD, "password");
-        userValues.put(COLUMN_FULLNAME, "Jane Smith");
-        userValues.put(COLUMN_ROLE, "teacher");
-        userValues.put(COLUMN_GROUPS, "G1,G2");
-        db.insert(TABLE_USERS, null, userValues);
+                values.put(COLUMN_MODULE_ID, module.getString("id_module"));
+                values.put(COLUMN_MODULE_NAME, module.getString("Nom_module"));
+                // You might want to add group information here if available
+                values.put(COLUMN_MODULE_GROUP, "G1"); // Default group or get from API
+
+                db.insert(TABLE_MODULES, null, values);
+            }
+
+            db.setTransactionSuccessful();
+            return true;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            db.endTransaction();
+        }
+    }
+    public void fetchAndInsertModules() {
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url("https://num.univ-biskra.dz/psp/formations/get_modules_json?sem=2&spec=184")
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        String jsonData = response.body().string();
+                        JSONArray modulesArray = new JSONArray(jsonData);
+                        insertModulesFromApi(modulesArray);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -113,6 +170,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_MODULES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_GRADES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TEACHER_MODULES);
         onCreate(db);
     }
 
@@ -129,7 +187,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (!isValidGroup(groupOrGroups)) return false;
             values.put(COLUMN_GROUP, groupOrGroups);
         } else if (role.equals("teacher")) {
-            // For teachers, groupOrGroups should be comma-separated
             String[] groups = groupOrGroups.split(",");
             for (String group : groups) {
                 if (!isValidGroup(group.trim())) return false;
@@ -152,20 +209,204 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return addUser(username, password, "teacher", fullName, groupsString);
     }
 
-    private boolean isValidGroup(String group) {
-        return group.matches("G[1-9]|G10");
+    // Assign module to teacher
+    public boolean assignModuleToTeacher(int teacherId, String moduleId, String group) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_TEACHER_ID, teacherId);
+        values.put(COLUMN_MODULE_ID, moduleId);
+        values.put(COLUMN_MODULE_GROUP, group);
+        long result = db.insert(TABLE_TEACHER_MODULES, null, values);
+        return result != -1;
     }
 
-    // Get all available groups (G1-G10)
+    // Get teacher's modules
+    public List<Module> getTeacherModules(int teacherId) {
+        List<Module> modules = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String query = "SELECT m." + COLUMN_MODULE_ID + ", m." + COLUMN_MODULE_NAME + ", tm." + COLUMN_MODULE_GROUP +
+                " FROM " + TABLE_TEACHER_MODULES + " tm" +
+                " JOIN " + TABLE_MODULES + " m ON tm." + COLUMN_MODULE_ID + " = m." + COLUMN_MODULE_ID +
+                " WHERE tm." + COLUMN_TEACHER_ID + " = ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(teacherId)});
+
+        while (cursor.moveToNext()) {
+            Module module = new Module(
+                    cursor.getString(0),
+                    cursor.getString(1),
+                    cursor.getString(2));
+            modules.add(module);
+        }
+        cursor.close();
+        return modules;
+    }
+
+    public List<User> getStudentsByModuleAndGroup(String moduleId, String group) {
+        List<User> students = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Modified query to include grade information if available
+        String query = "SELECT u." + COLUMN_ID + ", u." + COLUMN_USERNAME + ", u." + COLUMN_FULLNAME +
+                ", g." + COLUMN_GRADE +
+                " FROM " + TABLE_USERS + " u" +
+                " LEFT JOIN " + TABLE_GRADES + " g ON u." + COLUMN_ID + " = g." + COLUMN_STUDENT_ID +
+                " AND g." + COLUMN_MODULE_ID + " = ?" +
+                " WHERE u." + COLUMN_ROLE + " = ? AND u." + COLUMN_GROUP + " = ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{moduleId, "student", group});
+
+        while (cursor.moveToNext()) {
+            User student = new User(
+                    cursor.getInt(0),
+                    cursor.getString(1),
+                    cursor.getString(2),
+                    "student",
+                    group);
+            students.add(student);
+        }
+        cursor.close();
+        return students;
+    }
+
+    // Get students by module and group
+
+    // Get student's grades
+    public List<ModuleGrade> getStudentGrades(int studentId) {
+        List<ModuleGrade> grades = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String query = "SELECT m." + COLUMN_MODULE_NAME + ", g." + COLUMN_GRADE +
+                " FROM " + TABLE_GRADES + " g" +
+                " INNER JOIN " + TABLE_MODULES + " m ON g." + COLUMN_MODULE_ID + " = m." + COLUMN_MODULE_ID +
+                " WHERE g." + COLUMN_STUDENT_ID + " = ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(studentId)});
+
+        while (cursor.moveToNext()) {
+            String moduleName = cursor.getString(0);
+            Double grade = cursor.isNull(1) ? null : cursor.getDouble(1);
+            grades.add(new ModuleGrade(moduleName, grade));
+        }
+        cursor.close();
+        return grades;
+    }
+
+    // Add or update grade
+    public boolean addOrUpdateGrade(int studentId, String moduleId, double grade) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Check if grade exists
+        Cursor cursor = db.query(TABLE_GRADES,
+                new String[]{COLUMN_GRADE_ID},
+                COLUMN_STUDENT_ID + " = ? AND " + COLUMN_MODULE_ID + " = ?",
+                new String[]{String.valueOf(studentId), moduleId},
+                null, null, null);
+
+        if (cursor != null && cursor.getCount() > 0) {
+            // Update existing grade
+            cursor.moveToFirst();
+            int gradeId = cursor.getInt(0);
+            cursor.close();
+
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_GRADE, grade);
+            int rowsAffected = db.update(TABLE_GRADES, values,
+                    COLUMN_GRADE_ID + " = ?", new String[]{String.valueOf(gradeId)});
+            return rowsAffected > 0;
+        } else {
+            // Insert new grade
+            if (cursor != null) cursor.close();
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_STUDENT_ID, studentId);
+            values.put(COLUMN_MODULE_ID, moduleId);
+            values.put(COLUMN_GRADE, grade);
+            long result = db.insert(TABLE_GRADES, null, values);
+            return result != -1;
+        }
+    }
+
+    // Get user by username
+    public User getUserByUsername(String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,
+                new String[]{COLUMN_ID, COLUMN_USERNAME, COLUMN_PASSWORD, COLUMN_FULLNAME, COLUMN_ROLE, COLUMN_GROUP, COLUMN_GROUPS},
+                COLUMN_USERNAME + " = ?",
+                new String[]{username},
+                null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            User user = new User(
+                    cursor.getInt(0),
+                    cursor.getString(1),
+                    cursor.getString(3),
+                    cursor.getString(4),
+                    cursor.getString(5) != null ? cursor.getString(5) : cursor.getString(6));
+            cursor.close();
+            return user;
+        }
+        return null;
+    }
+
+    // Check user credentials
+    public boolean checkUser(String username, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,
+                new String[]{COLUMN_ID},
+                COLUMN_USERNAME + " = ? AND " + COLUMN_PASSWORD + " = ?",
+                new String[]{username, password},
+                null, null, null);
+        boolean exists = cursor != null && cursor.getCount() > 0;
+        if (cursor != null) cursor.close();
+        return exists;
+    }
+
+    // Get user role
+    public String getUserRole(String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,
+                new String[]{COLUMN_ROLE},
+                COLUMN_USERNAME + " = ?",
+                new String[]{username},
+                null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            String role = cursor.getString(0);
+            cursor.close();
+            return role;
+        }
+        return null;
+    }
+
+    // Get all modules
+    public List<String> getAllModules() {
+        List<String> modules = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(TABLE_MODULES,
+                new String[]{COLUMN_MODULE_NAME},
+                null, null, null, null, null);
+
+        while (cursor.moveToNext()) {
+            modules.add(cursor.getString(0));
+        }
+        cursor.close();
+        return modules;
+    }
+
+    // Get all groups (G1-G12)
     public List<String> getAllGroups() {
         List<String> groups = new ArrayList<>();
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 1; i <= 12; i++) {
             groups.add("G" + i);
         }
         return groups;
     }
 
-    // Get students in a specific group
+    private boolean isValidGroup(String group) {
+        return group.matches("G[1-9]|G1[0-2]");
+    }
     public List<User> getStudentsByGroup(String group) {
         List<User> students = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -187,119 +428,5 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return students;
-    }
-
-    // Get user by username and password
-    public User getUser(String username, String password) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_USERS,
-                new String[]{COLUMN_ID, COLUMN_USERNAME, COLUMN_FULLNAME, COLUMN_ROLE, COLUMN_GROUP, COLUMN_GROUPS},
-                COLUMN_USERNAME + " = ? AND " + COLUMN_PASSWORD + " = ?",
-                new String[]{username, password},
-                null, null, null);
-
-        if (cursor != null && cursor.moveToFirst()) {
-            User user = new User(
-                    cursor.getInt(0),
-                    cursor.getString(1),
-                    cursor.getString(2),
-                    cursor.getString(3),
-                    cursor.getString(4) != null ? cursor.getString(4) : cursor.getString(5));
-            cursor.close();
-            return user;
-        }
-        return null;
-    }
-
-    // Get all modules for a group
-    public List<Module> getModulesByGroup(String group) {
-        List<Module> modules = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        Cursor cursor = db.query(TABLE_MODULES,
-                new String[]{COLUMN_MODULE_ID, COLUMN_MODULE_NAME},
-                COLUMN_MODULE_GROUP + " = ?",
-                new String[]{group},
-                null, null, null);
-
-        while (cursor.moveToNext()) {
-            Module module = new Module(
-                    cursor.getString(0),
-                    cursor.getString(1),
-                    group);
-            modules.add(module);
-        }
-        cursor.close();
-        return modules;
-    }
-
-    // Add grade for a student
-    public boolean addGrade(int studentId, String moduleId, double grade) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_STUDENT_ID, studentId);
-        values.put(COLUMN_MODULE_ID, moduleId);
-        values.put(COLUMN_GRADE, grade);
-        long result = db.insert(TABLE_GRADES, null, values);
-        return result != -1;
-    }
-
-    // Get grades for a student
-    public List<Grade> getGradesByStudent(int studentId) {
-        List<Grade> grades = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        String query = "SELECT m." + COLUMN_MODULE_NAME + ", g." + COLUMN_GRADE +
-                " FROM " + TABLE_GRADES + " g" +
-                " INNER JOIN " + TABLE_MODULES + " m ON g." + COLUMN_MODULE_ID + " = m." + COLUMN_MODULE_ID +
-                " WHERE g." + COLUMN_STUDENT_ID + " = ?";
-
-        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(studentId)});
-
-        while (cursor.moveToNext()) {
-            String moduleName = cursor.getString(0);
-            double gradeValue = cursor.getDouble(1);
-            grades.add(new Grade(moduleName, gradeValue));
-        }
-        cursor.close();
-        return grades;
-    }
-
-    // Get all teachers
-    public List<User> getAllTeachers() {
-        List<User> teachers = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        Cursor cursor = db.query(TABLE_USERS,
-                new String[]{COLUMN_ID, COLUMN_USERNAME, COLUMN_FULLNAME, COLUMN_GROUPS},
-                COLUMN_ROLE + " = ?",
-                new String[]{"teacher"},
-                null, null, null);
-
-        while (cursor.moveToNext()) {
-            User teacher = new User(
-                    cursor.getInt(0),
-                    cursor.getString(1),
-                    cursor.getString(2),
-                    "teacher",
-                    cursor.getString(3));
-            teachers.add(teacher);
-        }
-        cursor.close();
-        return teachers;
-    }
-    public List<String> getAllModules() {
-        List<String> modules = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        Cursor cursor = db.query(TABLE_MODULES,
-                new String[]{COLUMN_MODULE_NAME},
-                null, null, null, null, null);
-
-        while (cursor.moveToNext()) {
-            modules.add(cursor.getString(0));
-        }
-        cursor.close();
-        return modules;
     }
 }
