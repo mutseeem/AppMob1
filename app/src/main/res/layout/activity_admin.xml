@@ -3,8 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:gravity="center">
+    android:padding="16dp">
 
     <Button
         android:id="@+id/btnAddStudent"
@@ -21,8 +20,16 @@
         android:layout_marginBottom="16dp"/>
 
     <Button
+        android:id="@+id/btnViewStudents"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View Students by Group"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
         android:id="@+id/btnLogout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Logout"/>
+
 </LinearLayout>

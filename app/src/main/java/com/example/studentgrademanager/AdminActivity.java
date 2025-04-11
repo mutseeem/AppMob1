@@ -116,8 +116,7 @@ public class AdminActivity extends AppCompatActivity {
             if (username.isEmpty() || password.isEmpty() || fullName.isEmpty()) {
                 Toast.makeText(AdminActivity.this, "All fields are required", Toast.LENGTH_SHORT).show();
             } else {
-                boolean success = dbHelper.addUser(username, password, "student", fullName);
-                if (success) {
+                boolean success = dbHelper.addUser(username, password, "student", fullName, "GroupA");                if (success) {
                     Toast.makeText(AdminActivity.this, "Student created successfully", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(AdminActivity.this, "Failed to create student", Toast.LENGTH_SHORT).show();
@@ -178,12 +177,13 @@ public class AdminActivity extends AppCompatActivity {
             } else if (selectedModules.isEmpty()) {
                 Toast.makeText(this, "Select at least one module", Toast.LENGTH_SHORT).show();
             } else {
-                Teacher newTeacher = new Teacher(0, username, password, fullName, selectedModules, groups);
-                boolean success = dbHelper.addTeacher(newTeacher);
+                boolean success = dbHelper.addTeacher(username, password, fullName, groups);
                 if (success) {
-                    Toast.makeText(this, "Teacher created successfully", Toast.LENGTH_SHORT).show();
+                    // Teacher added successfully
+                    Toast.makeText(this, "Teacher added successfully", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(this, "Failed to create teacher", Toast.LENGTH_SHORT).show();
+                    // Failed to add teacher
+                    Toast.makeText(this, "Failed to add teacher", Toast.LENGTH_SHORT).show();
                 }
             }
         });

@@ -1,10 +1,6 @@
 package com.example.studentgrademanager;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -12,57 +8,33 @@ import java.util.List;
 
 public class StudentActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
-    private StudentAdapter adapter;
-    private List<ModuleGrade> moduleGrades;
+    private ModuleAdapter adapter;
+    private List<Module> modules;
     private DatabaseHelper dbHelper;
-    private String studentUsername;
-    private TextView tvAverage; // TextView for average grade and pass/fail
+    private User currentStudent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_student);
-        Button btnLogout = findViewById(R.id.btnLogout);
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(StudentActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        });
 
-        // Get the student username from Intent extras
-        studentUsername = getIntent().getStringExtra("studentUsername");
-        System.out.println("DEBUG: StudentActivity - Logged in student: " + studentUsername);
-
+        // Initialize database helper
         dbHelper = new DatabaseHelper(this);
-        recyclerView = findViewById(R.id.recyclerViewStudent);
+
+        // Get current student (in a real app, you'd get this from login)
+        currentStudent = new User(1, "student1", "John Doe", "student", "GroupA");
+
+        // Initialize RecyclerView
+        recyclerView = findViewById(R.id.rvGrades);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        tvAverage = findViewById(R.id.tvAverage);
 
-        moduleGrades = dbHelper.getModuleGradesForStudent(studentUsername);
-        System.out.println("DEBUG: StudentActivity - Number of modules loaded: " + moduleGrades.size());
+        // Load modules for student's group
+        loadModules();
+    }
 
-        adapter = new StudentAdapter(moduleGrades);
+    private void loadModules() {
+        modules = dbHelper.getModulesByGroupForStudent(currentStudent.getGroup(), currentStudent.getId());
+        adapter = new ModuleAdapter(modules);
         recyclerView.setAdapter(adapter);
-
-        // Check if all modules have a grade and calculate average if so.
-        boolean allGraded = true;
-        double sum = 0;
-        for (ModuleGrade mg : moduleGrades) {
-            if (mg.getGrade() == null) {
-                allGraded = false;
-                break;
-            }
-            sum += mg.getGrade();
-        }
-        if (allGraded && !moduleGrades.isEmpty()) {
-            double average = sum / moduleGrades.size();
-            String result = average >= 10 ? "Pass" : "Fail";
-            tvAverage.setText("Average grade: " + String.format("%.2f", average) + " (" + result + ")");
-        } else {
-            tvAverage.setText("");
-        }
     }
 }
