@@ -42,7 +42,6 @@ public class AdminActivity extends AppCompatActivity {
         });
 
         dbHelper = new DatabaseHelper(this);
-        //dbHelper.resetDatabase();
 
         btnAddStudent = findViewById(R.id.btnAddStudent);
         btnAddTeacher = findViewById(R.id.btnAddTeacher);

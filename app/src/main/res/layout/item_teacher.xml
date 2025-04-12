@@ -4,43 +4,64 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:padding="12dp"
+    android:layout_marginVertical="6dp"
+    android:layout_marginHorizontal="12dp"
+    android:background="@android:color/white"
+    android:elevation="2dp">
 
     <TextView
         android:id="@+id/tvUsername"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Username"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:textColor="#222222"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/etGrade"
+        app:layout_constraintHorizontal_bias="0"
+        android:layout_marginEnd="8dp"/>
 
     <TextView
         android:id="@+id/tvFullName"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Full Name"
+        android:textSize="14sp"
+        android:textColor="#555555"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvUsername"/>
+        app:layout_constraintTop_toBottomOf="@id/tvUsername"
+        app:layout_constraintEnd_toStartOf="@id/etGrade"
+        app:layout_constraintHorizontal_bias="0"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="8dp"/>
 
     <EditText
         android:id="@+id/etGrade"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="80dp"
+        android:layout_height="45dp"
+        android:hint="Grade"
         android:inputType="numberDecimal"
-        android:hint="Enter Grade"
-        app:layout_constraintStart_toEndOf="@id/tvFullName"
+        android:background="@drawable/edittext_background"
+        android:paddingHorizontal="12dp"
+        android:textColor="#000"
+        android:textColorHint="#888888"
         app:layout_constraintEnd_toStartOf="@id/btnSubmitGrade"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"/>
+        android:layout_marginEnd="8dp"/>
 
     <Button
         android:id="@+id/btnSubmitGrade"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="45dp"
         android:text="Submit"
+        android:textAllCaps="false"
+        android:backgroundTint="#2196F3"
+        android:textColor="#FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintBottom_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
