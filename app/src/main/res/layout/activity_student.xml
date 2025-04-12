@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/student_background"
-    android:orientation="vertical">
+    android:background="@color/white">
 
-    <!-- Bright red header -->
+    <!-- Header -->
     <TextView
+        android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/student_primary"
@@ -17,55 +16,37 @@
         android:gravity="center"
         android:textStyle="bold"/>
 
-    <!-- Content area -->
+    <!-- Centered Content -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_below="@id/header"
+        android:layout_above="@+id/bottomSpace"
+        android:layout_centerInParent="true"
         android:orientation="vertical"
-        android:background="@android:color/white"
-        android:padding="16dp"
-        android:elevation="4dp">
+        android:padding="16dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/tvWelcome"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="My Assignments"
-            android:textColor="@color/student_text"
             android:textSize="18sp"
-            android:textStyle="bold"/>
+            android:layout_marginBottom="16dp"
+            android:text="Your Grades"
+            android:gravity="center"/>
 
-        <!-- Red-themed RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewStudent"
+            android:id="@+id/rvGrades"
             android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_marginTop="8dp"
-            android:background="@color/student_secondary"
-            android:padding="4dp"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:cardBackgroundColor="@color/student_primary"/>
-
-        <!-- Red-themed Average TextView -->
-        <TextView
-            android:id="@+id/tvAverage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Average Grade: -"
-            android:textColor="@color/student_primary"
-            android:background="@color/student_secondary"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:padding="12dp"/>
-
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="View Assignments"
-            android:textColor="@color/student_primary"
-            style="@style/Widget.AppCompat.Button.Borderless"/>
+            android:layout_height="400dp"
+            android:layout_margin="8dp"/>
     </LinearLayout>
-</LinearLayout>
+
+    <!-- Empty space for centering -->
+    <View
+        android:id="@+id/bottomSpace"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_alignParentBottom="true"/>
+</RelativeLayout>

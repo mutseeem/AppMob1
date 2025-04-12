@@ -61,7 +61,7 @@ public class AdminActivity extends AppCompatActivity {
     private void fetchModulesFromAPI() {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
-                .url("https://num.univ-biskra.dz/psp/formations/get_modules_json?sem=2&spec=184")
+                .url("https://num.univ-biskra.dz/psp/formations/get_modules_json?sem=1&spec=184")
                 .build();
 
         client.newCall(request).enqueue(new Callback() {
@@ -106,14 +106,12 @@ public class AdminActivity extends AppCompatActivity {
         final EditText etUsername = view.findViewById(R.id.etUsername);
         final EditText etPassword = view.findViewById(R.id.etPassword);
         final EditText etFullName = view.findViewById(R.id.etFullName);
-        final EditText etGroup = view.findViewById(R.id.etGroup);
 
         builder.setView(view);
         builder.setPositiveButton("Create", (dialog, which) -> {
             String username = etUsername.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
             String fullName = etFullName.getText().toString().trim();
-            String group = etGroup.getText().toString().trim();
 
             if (username.isEmpty() || password.isEmpty() || fullName.isEmpty()) {
                 Toast.makeText(AdminActivity.this, "All fields are required", Toast.LENGTH_SHORT).show();

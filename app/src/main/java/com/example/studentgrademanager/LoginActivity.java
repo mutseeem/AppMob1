@@ -17,15 +17,18 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
         dbHelper = new DatabaseHelper(this);
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
+
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String username = etUsername.getText().toString().trim();
                 String password = etPassword.getText().toString().trim();
+
                 if (username.isEmpty() || password.isEmpty()) {
                     Toast.makeText(LoginActivity.this, "Enter username & password", Toast.LENGTH_SHORT).show();
                 } else {

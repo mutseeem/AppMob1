@@ -21,5 +21,9 @@
     <color name="student_secondary">#FF867F</color>
     <color name="student_background">#FFF5F5</color>
     <color name="student_text">#212121</color>
+    <color name="admin_primary">#673AB7</color>
+    <color name="admin_primary_dark">#512DA8</color>
+    <color name="admin_secondary">#9575CD</color>
+
 
 </resources>

@@ -6,17 +6,17 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class TeacherAdapter extends RecyclerView.Adapter<TeacherAdapter.ViewHolder> {
     private List<Student> students;
-    private String moduleCode;
+    private String currentModuleId;
+    private TeacherActivity teacherActivity;
 
-    public TeacherAdapter(List<Student> students, String moduleCode) {
+    public TeacherAdapter(List<Student> students, String moduleId) {
         this.students = students;
-        this.moduleCode = moduleCode;
+        this.currentModuleId = moduleId;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -46,30 +46,28 @@ public class TeacherAdapter extends RecyclerView.Adapter<TeacherAdapter.ViewHold
         Student student = students.get(position);
         holder.tvUsername.setText(student.getUsername());
         holder.tvFullName.setText(student.getFullName());
+
+        // Set current grade if exists
         holder.etGrade.setText(student.getGrade() == null ? "" : String.valueOf(student.getGrade()));
 
         holder.btnSubmit.setOnClickListener(v -> {
-            String gradeStr = holder.etGrade.getText().toString().trim();
-            if (!gradeStr.isEmpty()) {
-                try {
-                    double grade = Double.parseDouble(gradeStr);
-                    if (grade < 0 || grade > 20) {
-                        holder.etGrade.setError("Grade must be between 0 and 20");
-                        return;
-                    }
-                    DatabaseHelper dbHelper = new DatabaseHelper(v.getContext());
-                    boolean success = dbHelper.updateStudentGrade(student.getId(), grade, moduleCode);
-                    if (success) {
-                        Toast.makeText(v.getContext(), "Grade updated for " + student.getUsername(), Toast.LENGTH_SHORT).show();
-                        student.setGrade(grade);
-                    } else {
-                        Toast.makeText(v.getContext(), "Failed to update grade", Toast.LENGTH_SHORT).show();
-                    }
-                } catch (NumberFormatException e) {
-                    Toast.makeText(v.getContext(), "Enter a valid grade", Toast.LENGTH_SHORT).show();
+            try {
+                double grade = Double.parseDouble(holder.etGrade.getText().toString());
+                if (grade < 0 || grade > 100) {
+                    holder.etGrade.setError("Grade must be between 0-100");
+                    return;
                 }
-            } else {
-                Toast.makeText(v.getContext(), "Grade cannot be empty", Toast.LENGTH_SHORT).show();
+
+                if (teacherActivity == null && v.getContext() instanceof TeacherActivity) {
+                    teacherActivity = (TeacherActivity) v.getContext();
+                }
+
+                if (teacherActivity != null) {
+                    teacherActivity.submitGrade(student.getId(), currentModuleId, grade);
+                    student.setGrade(grade); // Update the local student object
+                }
+            } catch (NumberFormatException e) {
+                holder.etGrade.setError("Enter a valid number");
             }
         });
     }

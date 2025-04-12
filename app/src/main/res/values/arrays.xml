@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="groups_array">
+        <item>G1</item>
+        <item>G2</item>
+        <item>G3</item>
+        <item>G4</item>
+        <item>G5</item>
+        <item>G6</item>
+        <item>G7</item>
+        <item>G8</item>
+        <item>G9</item>
+        <item>G10</item>
+    </string-array>
+</resources>
