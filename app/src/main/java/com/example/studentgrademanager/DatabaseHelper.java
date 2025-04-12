@@ -60,6 +60,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         fetchModulesFromAPI(db);
     }
+    public void resetDatabase() {
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_MODULES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_GRADES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TEACHER_MODULES);
+        onCreate(db); // Recreate tables
+    }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -74,7 +82,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void fetchModulesFromAPI(SQLiteDatabase db) {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
-                .url("https://num.univ-biskra.dz/psp/formations/get_modules_json?sem=1&spec=184")
+                .url("https://num.univ-biskra.dz/psp/formations/get_modules_json?sem=2&spec=184")
                 .build();
 
         client.newCall(request).enqueue(new Callback() {
