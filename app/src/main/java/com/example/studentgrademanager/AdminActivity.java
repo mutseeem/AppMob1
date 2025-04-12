@@ -8,22 +8,25 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import android.widget.LinearLayout;
-
 
 public class AdminActivity extends AppCompatActivity {
     private Button btnAddStudent, btnAddTeacher;
@@ -34,19 +37,15 @@ public class AdminActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin);
+
         Button btnLogout = findViewById(R.id.btnLogout);
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(AdminActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish();
-            }
+        btnLogout.setOnClickListener(v -> {
+            Intent intent = new Intent(AdminActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
         });
 
         dbHelper = new DatabaseHelper(this);
-        //dbHelper.resetDatabase();
-
         btnAddStudent = findViewById(R.id.btnAddStudent);
         btnAddTeacher = findViewById(R.id.btnAddTeacher);
 
@@ -55,7 +54,6 @@ public class AdminActivity extends AppCompatActivity {
 
         btnAddStudent.setOnClickListener(v -> showAddStudentDialog());
         btnAddTeacher.setOnClickListener(v -> showAddTeacherDialog());
-
     }
 
     private void fetchModulesFromAPI() {
@@ -76,7 +74,6 @@ public class AdminActivity extends AppCompatActivity {
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful() && response.body() != null) {
                     String jsonResponse = response.body().string();
-                    System.out.println("DEBUG: API Response = " + jsonResponse);
                     try {
                         JSONArray jsonArray = new JSONArray(jsonResponse);
                         moduleList.clear();
@@ -87,36 +84,34 @@ public class AdminActivity extends AppCompatActivity {
                             moduleList.add(moduleName + " (" + moduleCode + ")");
                         }
                     } catch (JSONException e) {
-                        System.out.println("DEBUG: JSON Parsing Error - " + e.getMessage());
+                        e.printStackTrace();
                     }
-                } else {
-                    System.out.println("DEBUG: Response Failed - Code: " + response.code());
                 }
             }
         });
     }
 
-
-
     private void showAddStudentDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add New Student");
 
-        View view = getLayoutInflater().inflate(R.layout.dialog_add_user, null);
+        View view = getLayoutInflater().inflate(R.layout.dialog_add_student, null);
         final EditText etUsername = view.findViewById(R.id.etUsername);
         final EditText etPassword = view.findViewById(R.id.etPassword);
         final EditText etFullName = view.findViewById(R.id.etFullName);
+        final Spinner spinnerGroup = view.findViewById(R.id.spinnerGroup);
 
         builder.setView(view);
         builder.setPositiveButton("Create", (dialog, which) -> {
             String username = etUsername.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
             String fullName = etFullName.getText().toString().trim();
+            String group = spinnerGroup.getSelectedItem().toString().trim();
 
-            if (username.isEmpty() || password.isEmpty() || fullName.isEmpty()) {
+            if (username.isEmpty() || password.isEmpty() || fullName.isEmpty() || group.isEmpty()) {
                 Toast.makeText(AdminActivity.this, "All fields are required", Toast.LENGTH_SHORT).show();
             } else {
-                boolean success = dbHelper.addUser(username, password, "student", fullName);
+                boolean success = dbHelper.addUser(username, password, "student", fullName, group);
                 if (success) {
                     Toast.makeText(AdminActivity.this, "Student created successfully", Toast.LENGTH_SHORT).show();
                 } else {
@@ -127,6 +122,7 @@ public class AdminActivity extends AppCompatActivity {
         builder.setNegativeButton("Cancel", null);
         builder.show();
     }
+
 
     private void showAddTeacherDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -139,8 +135,8 @@ public class AdminActivity extends AppCompatActivity {
         final EditText etGroups = view.findViewById(R.id.etGroups);
         final LinearLayout modulesContainer = view.findViewById(R.id.modulesContainer);
 
-        List<String> modules = dbHelper.getAllModules();
-        for (String module : modules) {
+        // Populate modules dynamically
+        for (String module : moduleList) {
             CheckBox checkBox = new CheckBox(this);
             checkBox.setText(module);
             modulesContainer.addView(checkBox);
@@ -178,8 +174,7 @@ public class AdminActivity extends AppCompatActivity {
             } else if (selectedModules.isEmpty()) {
                 Toast.makeText(this, "Select at least one module", Toast.LENGTH_SHORT).show();
             } else {
-                Teacher newTeacher = new Teacher(0, username, password, fullName, selectedModules, groups);
-                boolean success = dbHelper.addTeacher(newTeacher);
+                boolean success = dbHelper.addTeacher(username, password, fullName, groups);
                 if (success) {
                     Toast.makeText(this, "Teacher created successfully", Toast.LENGTH_SHORT).show();
                 } else {

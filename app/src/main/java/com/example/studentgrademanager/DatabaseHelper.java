@@ -99,6 +99,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // Insert sample data
         insertSampleData(db);
     }
+    public void resetdb(){
+        SQLiteDatabase db = getReadableDatabase();
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_MODULES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_GRADES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TEACHER_MODULES);
+        onCreate(db);
+    }
 
     private void insertSampleData(SQLiteDatabase db) {
         // Only insert admin user
